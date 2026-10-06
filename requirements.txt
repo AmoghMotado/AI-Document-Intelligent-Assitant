@@ -1,0 +1,21 @@
+# Web UI
+streamlit
+
+# Loads ANTHROPIC_API_KEY and settings from the .env file
+python-dotenv
+
+# LangChain building blocks
+langchain-core
+langchain-anthropic
+langchain-community
+langchain-huggingface
+langchain-text-splitters
+
+# Local embedding model (used by langchain-huggingface)
+sentence-transformers
+
+# Vector database
+faiss-cpu
+
+# PDF text extraction (used by LangChain's PyPDFLoader)
+pypdf
