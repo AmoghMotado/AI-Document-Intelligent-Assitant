@@ -1,10 +1,10 @@
 # AI-Powered Document Intelligence Assistant
 
-A Streamlit web app that answers questions about your PDF documents using Retrieval-Augmented Generation (RAG), with Claude as the LLM, local Hugging Face embeddings and a FAISS vector index.
+A Streamlit web app that answers questions about your PDF documents using Retrieval-Augmented Generation (RAG), with an OpenAI model as the LLM, local Hugging Face embeddings and a FAISS vector index.
 
 ## Overview
 
-Upload one or more PDFs, click **Process Documents**, and ask questions in a chat box. The app finds the passages most relevant to your question and asks Claude to answer using only those passages. Every answer shows the document name, page number and text of the chunks it was based on. If the answer is not in the documents, the app says so instead of guessing.
+Upload one or more PDFs, click **Process Documents**, and ask questions in a chat box. The app finds the passages most relevant to your question and asks the LLM to answer using only those passages. Every answer shows the document name, page number and text of the chunks it was based on. If the answer is not in the documents, the app says so instead of guessing.
 
 ## Problem Statement
 
@@ -12,7 +12,7 @@ Large language models can answer general questions, but they do not know the con
 
 ## Solution
 
-The app uses RAG. Documents are split into small chunks, each chunk is converted into an embedding, and the embeddings are stored in FAISS. For each question, only the most similar chunks are retrieved and passed to Claude with strict instructions to answer from that context alone and to cite sources.
+The app uses RAG. Documents are split into small chunks, each chunk is converted into an embedding, and the embeddings are stored in FAISS. For each question, only the most similar chunks are retrieved and passed to the OpenAI model with strict instructions to answer from that context alone and to cite sources.
 
 ## Key Features
 
@@ -40,7 +40,7 @@ QUESTION ANSWERING (on every question)
 Question ─► embed with the same model
          ─► FAISS similarity search (top 4 chunks)
          ─► prompt = rules + labelled chunks + question
-         ─► Claude (via LangChain ChatAnthropic)
+         ─► OpenAI LLM (via LangChain ChatOpenAI)
          ─► answer + source references in the Streamlit UI
 ```
 
@@ -49,8 +49,8 @@ Question ─► embed with the same model
 | Technology | Role |
 |---|---|
 | Python | Application language |
-| Anthropic Claude API | LLM that generates grounded answers |
-| LangChain | PDF loader, text splitter, FAISS wrapper, prompt template, Claude integration |
+| OpenAI API | LLM that generates grounded answers |
+| LangChain | PDF loader, text splitter, FAISS wrapper, prompt template, OpenAI integration |
 | RAG | Overall retrieve-then-generate design |
 | Hugging Face Embeddings | Local `all-MiniLM-L6-v2` model via `langchain-huggingface` |
 | FAISS | Vector index and similarity search |
@@ -80,7 +80,7 @@ ai-document-intelligence-assistant/
     ├── vector_store.py     # FAISS index creation
     ├── retriever.py        # Similarity search
     ├── prompts.py          # Grounding prompt + context formatting
-    ├── llm.py              # Claude chat model
+    ├── llm.py              # OpenAI chat model
     └── rag.py              # Ties the pipeline together
 ```
 
@@ -90,12 +90,12 @@ ai-document-intelligence-assistant/
 2. **Chunk:** pages are split into ~1000-character chunks with 200 characters of overlap, preferring paragraph and sentence boundaries.
 3. **Embed and index:** every chunk is embedded locally and stored in a FAISS index.
 4. **Retrieve:** the question is embedded with the same model, and FAISS returns the 4 closest chunks.
-5. **Generate:** the chunks, labelled with source and page, are inserted into a prompt that tells Claude to answer only from them, cite sources, and reply with a fixed sentence if the answer is missing.
+5. **Generate:** the chunks, labelled with source and page, are inserted into a prompt that tells the LLM to answer only from them, cite sources, and reply with a fixed sentence if the answer is missing.
 6. **Display:** the answer appears in the chat. A "not found" reply is shown as a warning, and the retrieved chunks are listed in an expandable section.
 
 ## Setup
 
-Requirements: Python 3.11 or 3.12, Git, and an Anthropic API key with credit.
+Requirements: Python 3.11 or 3.12, Git, and an OpenAI API key with credit.
 
 ```bash
 git clone https://github.com/<your-username>/ai-document-intelligence-assistant.git
@@ -127,14 +127,14 @@ The first install downloads PyTorch as a dependency of `sentence-transformers`, 
 Copy `.env.example` to `.env` and fill in your key:
 
 ```
-ANTHROPIC_API_KEY=your-anthropic-api-key-here
-ANTHROPIC_MODEL=claude-haiku-4-5-20251001
+OPENAI_API_KEY=your-openai-api-key-here
+OPENAI_MODEL=gpt-6-luna
 ```
 
 | Variable | Purpose |
 |---|---|
-| `ANTHROPIC_API_KEY` | Your key from console.anthropic.com. Never commit it. |
-| `ANTHROPIC_MODEL` | The Claude model to use. Change it without editing code. |
+| `OPENAI_API_KEY` | Your key from platform.openai.com/api-keys. Never commit it. |
+| `OPENAI_MODEL` | The OpenAI model to use. Change it without editing code. |
 
 ## Running the Application
 

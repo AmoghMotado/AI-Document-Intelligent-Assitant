@@ -5,7 +5,7 @@ Indexing (once per upload):
     PDFs -> pages -> chunks -> embeddings -> FAISS
 
 Answering (every question):
-    question -> retrieve chunks -> build prompt -> Claude -> answer
+    question -> retrieve chunks -> build prompt -> LLM -> answer
 """
 
 from src.chunking import split_documents
@@ -19,7 +19,7 @@ from src.vector_store import create_vector_store
 
 def get_text(content):
     """
-    Claude's reply is usually a plain string, but LangChain can also return
+    The model's reply is usually a plain string, but LangChain can also return
     a list of content blocks. This collects the text in either case.
     """
     if isinstance(content, str):
@@ -65,7 +65,7 @@ def answer_question(vector_store, question):
     # 2. AUGMENTATION: put those chunks into the prompt.
     context = format_context(results)
 
-    # 3. GENERATION: Claude writes an answer from that context only.
+    # 3. GENERATION: the LLM writes an answer from that context only.
     #    "RAG_PROMPT | llm" is a LangChain chain: fill the template,
     #    then pass the resulting messages to the model.
     chain = RAG_PROMPT | get_llm()
