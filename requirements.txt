@@ -1,21 +1,21 @@
 # Web UI
-streamlit
+streamlit==1.65.0
 
-# Loads ANTHROPIC_API_KEY and settings from the .env file
-python-dotenv
+# Loads OPENAI_API_KEY and settings from the .env file
+python-dotenv==1.2.4
 
 # LangChain building blocks
-langchain-core
-langchain-anthropic
-langchain-community
-langchain-huggingface
-langchain-text-splitters
+langchain-core==1.6.13
+langchain-openai==1.7.2
+langchain-community==0.4.2
+langchain-huggingface==1.2.2
+langchain-text-splitters==1.1.3
 
 # Local embedding model (used by langchain-huggingface)
-sentence-transformers
+sentence-transformers==6.1.0
 
 # Vector database
-faiss-cpu
+faiss-cpu==1.15.1
 
 # PDF text extraction (used by LangChain's PyPDFLoader)
-pypdf
+pypdf==6.19.0

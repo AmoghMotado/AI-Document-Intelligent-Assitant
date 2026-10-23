@@ -7,7 +7,7 @@ Run with:
 
 import streamlit as st
 
-from src.config import ANTHROPIC_MODEL, CHUNK_SIZE, TOP_K, check_api_key
+from src.config import OPENAI_MODEL, CHUNK_SIZE, TOP_K, check_api_key
 from src.embeddings import get_embedding_model
 from src.rag import answer_question, build_index
 
@@ -73,7 +73,7 @@ with st.sidebar:
     )
 
     process_clicked = st.button(
-        "Process Documents", type="primary", use_container_width=True
+        "Process Documents", type="primary", width="stretch"
     )
 
     if process_clicked:
@@ -104,11 +104,11 @@ with st.sidebar:
 
     st.divider()
     st.caption(
-        f"LLM: `{ANTHROPIC_MODEL}`  \n"
+        f"LLM: `{OPENAI_MODEL}`  \n"
         f"Embeddings: all-MiniLM-L6-v2 (local)  \n"
         f"Chunk size: {CHUNK_SIZE} chars · Top-k: {TOP_K}"
     )
-    if st.session_state.chat_history and st.button("Clear chat", use_container_width=True):
+    if st.session_state.chat_history and st.button("Clear chat", width="stretch"):
         st.session_state.chat_history = []
         st.rerun()
 
@@ -117,7 +117,7 @@ st.title("📄 AI-Powered Document Intelligence Assistant")
 st.markdown(
     "Upload PDFs and ask questions about them. Answers are generated with "
     "**Retrieval-Augmented Generation (RAG)**: the app finds the most relevant "
-    "passages with vector search, and Claude answers using only those passages."
+    "passages with vector search, and an OpenAI model answers using only those passages."
 )
 
 api_key_error = check_api_key()

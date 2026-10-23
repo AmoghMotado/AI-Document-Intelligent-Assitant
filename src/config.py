@@ -11,13 +11,15 @@ from dotenv import load_dotenv
 # Read the .env file and put its values into environment variables.
 load_dotenv()
 
-# --- LLM (Claude) settings ---
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
-ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5-20251001")
+# --- LLM (OpenAI) settings ---
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-6-luna")
 
-# temperature=0 makes answers more deterministic and less "creative",
-# which is what we want when answering strictly from documents.
-LLM_TEMPERATURE = 0
+# None means "use the model's default temperature".
+# Newer OpenAI models reject temperature=0 and only accept the default.
+# Grounding comes from the prompt rules (answer only from the context).
+# If your model supports it, set this to 0 for more consistent answers.
+LLM_TEMPERATURE = None
 LLM_MAX_TOKENS = 1024
 
 # --- Embedding settings ---
@@ -43,9 +45,9 @@ NOT_FOUND_MESSAGE = "I could not find this information in the uploaded documents
 
 def check_api_key():
     """Return an error message if the API key is missing, else None."""
-    if not ANTHROPIC_API_KEY or ANTHROPIC_API_KEY.startswith("your-"):
+    if not OPENAI_API_KEY or OPENAI_API_KEY.startswith("your-"):
         return (
-            "ANTHROPIC_API_KEY is missing. Copy .env.example to .env "
-            "and paste your real key from console.anthropic.com."
+            "OPENAI_API_KEY is missing. Copy .env.example to .env "
+            "and paste your real key from platform.openai.com/api-keys."
         )
     return None

@@ -10,9 +10,9 @@ RAG has two pipelines.
 `PDF → pages → chunks → embeddings → FAISS`
 
 **Answering** runs for every question:
-`question → embedding → similarity search → top chunks → prompt → Claude → answer`
+`question → embedding → similarity search → top chunks → prompt → LLM → answer`
 
-The key idea: **retrieval finds relevant text, generation writes the answer from it.** FAISS never writes anything. Claude never searches anything.
+The key idea: **retrieval finds relevant text, generation writes the answer from it.** FAISS never writes anything. The LLM never searches anything.
 
 ## 1. `src/config.py`
 
@@ -20,8 +20,8 @@ Every setting lives here: API key, model name, chunk size, overlap, top-k and th
 
 Why centralize? To experiment, you change one number in one file.
 
-*Check yourself:* Why is `LLM_TEMPERATURE` set to 0?
-(Lower temperature means less randomness. For factual answers from documents we want consistency, not creativity.)
+*Check yourself:* Why is `LLM_TEMPERATURE` set to `None`?
+(Newer OpenAI models reject temperature 0 and only accept their default, so `None` tells LangChain not to send a temperature at all. Lower temperature means less randomness, so with a model that allows it, 0 is a good choice for factual answers.)
 
 ## 2. `src/document_loader.py`
 
@@ -60,7 +60,7 @@ This is **semantic similarity**: similarity of meaning, not of exact words. Keyw
 
 We use `all-MiniLM-L6-v2`: small, fast on a CPU, free, no API key. `normalize_embeddings=True` scales every vector to length 1 so distances reflect direction (meaning) rather than length.
 
-Note: Anthropic does not offer an embeddings model, so a separate embedding model is needed anyway. Using a local one keeps costs at zero.
+Note: OpenAI also offers paid embedding models, but using a local one keeps this step free and keeps your text on your machine.
 
 ## 5. `src/vector_store.py`
 
@@ -78,28 +78,28 @@ The score is a distance: **lower means more similar.** The UI shows it so you ca
 
 ## 7. `src/prompts.py`
 
-This is where **grounding** happens. The system prompt tells Claude:
+This is where **grounding** happens. The system prompt tells the LLM:
 - use only the context
 - never use outside knowledge or guess
 - if the answer is missing, reply with one exact sentence
 - cite sources as `[file, page]`
 
-`format_context` labels each chunk with its file and page, which is how Claude knows what to cite.
+`format_context` labels each chunk with its file and page, which is how the LLM knows what to cite.
 
 **How this reduces hallucination:** the model is given the facts and told to stay inside them. Instead of recalling (or inventing) an answer, it reads one. It is a large reduction, not a guarantee.
 
-**What happens when information isn't found:** FAISS *always* returns 4 chunks, even for an unrelated question, because it returns the nearest ones, not only good ones. So the "not found" decision is made by Claude after reading them. The exact sentence lets the app detect it and show a warning.
+**What happens when information isn't found:** FAISS *always* returns 4 chunks, even for an unrelated question, because it returns the nearest ones, not only good ones. So the "not found" decision is made by the LLM after reading them. The exact sentence lets the app detect it and show a warning.
 
 ## 8. `src/llm.py`
 
-Creates `ChatAnthropic` from `langchain-anthropic`. Because the rest of the app only uses LangChain's chat model interface, switching providers means changing only this file.
+Creates `ChatOpenAI` from `langchain-openai`. Because the rest of the app only uses LangChain's chat model interface, switching providers means changing only this file.
 
 ## 9. `src/rag.py`
 
 Ties everything together.
 
 - `build_index` runs the indexing pipeline and returns the index plus stats.
-- `answer_question` runs retrieval, then builds the prompt, then calls Claude.
+- `answer_question` runs retrieval, then builds the prompt, then calls the LLM.
 
 `RAG_PROMPT | get_llm()` is a LangChain **chain**: the `|` pipes the filled-in prompt into the model. `get_text` handles the fact that LangChain may return the reply as a string or as a list of content blocks.
 
@@ -115,7 +115,7 @@ The sidebar handles upload and processing. The main area shows the chat. `st.sto
 
 ## 11. `check_setup.py`
 
-Sends one tiny message to Claude. Run it first; if it fails, the problem is the key, model name or credit, not your RAG code.
+Sends one tiny message to OpenAI. Run it first; if it fails, the problem is the key, model name or credit, not your RAG code.
 
 ## Test questions and what should happen
 

@@ -1,26 +1,26 @@
 """
-Creates the Claude chat model through LangChain.
+Creates the OpenAI chat model through LangChain.
 
-ChatAnthropic reads ANTHROPIC_API_KEY from the environment. Because the
-rest of the code only talks to a LangChain chat model, switching to a
-different provider later means changing just this file.
+ChatOpenAI sends our prompt to OpenAI's API. Because the rest of the code
+only talks to a LangChain chat model, switching to a different provider
+later means changing just this file (and the settings in config.py).
 """
 
-from langchain_anthropic import ChatAnthropic
+from langchain_openai import ChatOpenAI
 
 from src.config import (
-    ANTHROPIC_API_KEY,
-    ANTHROPIC_MODEL,
+    OPENAI_API_KEY,
+    OPENAI_MODEL,
     LLM_TEMPERATURE,
     LLM_MAX_TOKENS,
 )
 
 
 def get_llm():
-    """Return a configured Claude chat model."""
-    return ChatAnthropic(
-        model=ANTHROPIC_MODEL,
-        api_key=ANTHROPIC_API_KEY,
+    """Return a configured OpenAI chat model."""
+    return ChatOpenAI(
+        model=OPENAI_MODEL,
+        api_key=OPENAI_API_KEY,
         temperature=LLM_TEMPERATURE,
         max_tokens=LLM_MAX_TOKENS,
     )
