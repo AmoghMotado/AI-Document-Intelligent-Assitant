@@ -29,7 +29,7 @@ The app has two pipelines.
 
 **Indexing.** Uploaded files are written to temporary files because PyPDFLoader needs a path. It returns one Document per page. I overwrite the source with the real file name and add a 1-based page number. Pages with no text are dropped, and a PDF with no text at all is reported as probably scanned, since there's no OCR. I chunk with RecursiveCharacterTextSplitter, 1000 characters and 200 overlap, which prefers paragraph and sentence boundaries. Embeddings come from all-MiniLM-L6-v2 through langchain-huggingface. It runs locally on CPU, produces 384-dimensional vectors, and I normalize them. The vectors go into an in-memory FAISS index held in Streamlit session state.
 
-**Answering.** The question is embedded with the same model and I call FAISS similarity search with scores for the top four chunks. Each chunk is labelled with its file and page and joined into a context block. A ChatPromptTemplate has a system message with the grounding rules and a human message with the context and question. I pipe it into ChatOpenAI at temperature 0. Because FAISS always returns the nearest chunks even for unrelated questions, the not-found decision is made by the model, which must output an exact sentence. The app checks for that sentence to show a warning.
+**Answering.** The question is embedded with the same model and I call FAISS similarity search with scores for the top four chunks. Each chunk is labelled with its file and page and joined into a context block. A ChatPromptTemplate has a system message with the grounding rules and a human message with the context and question. I pipe it into ChatOpenAI with the model's default temperature, because newer OpenAI models only accept the default. Because FAISS always returns the nearest chunks even for unrelated questions, the not-found decision is made by the model, which must output an exact sentence. The app checks for that sentence to show a warning.
 
 In Streamlit, I cache the embedding model with cache_resource so it loads once, and keep the index and chat history in session state because Streamlit reruns the script on every interaction.
 
@@ -55,7 +55,7 @@ Code is split by pipeline stage: loader, chunking, embeddings, vector store, ret
 - **Chunk size 1000 / overlap 200:** a common starting point balancing focused embeddings with enough context per chunk. Overlap prevents losing sentences split at boundaries.
 - **Top-k of 4:** enough context for most questions while keeping prompts short and cheap.
 - **Same embedding model for chunks and questions:** vectors from different models are not comparable.
-- **Temperature 0:** consistent, factual answers.
+- **Default temperature:** newer OpenAI models reject temperature 0, so grounding relies on the strict prompt rules. With an older model that allows it, `LLM_TEMPERATURE = 0` gives more consistent answers.
 - **Exact not-found sentence:** makes "answer missing" machine-detectable, so the UI can show it clearly.
 - **Metadata carried through every step:** enables page-level source references.
 - **In-memory index:** simplest option for a prototype. Persistence is listed as a future improvement.
@@ -106,7 +106,7 @@ Splitting documents into smaller pieces. Chunks that are too large give vague em
 Each model has its own vector space. Comparing vectors from different models is meaningless, like comparing coordinates on two different maps.
 
 **9. How does your app reduce hallucination?**
-The prompt gives the model the retrieved context and tells it to answer only from it, not use outside knowledge, cite sources, and use a fixed sentence when the answer is missing. Temperature 0 also helps. It reduces hallucination but can't guarantee zero.
+The prompt gives the model the retrieved context and tells it to answer only from it, not use outside knowledge, cite sources, and use a fixed sentence when the answer is missing. It reduces hallucination but can't guarantee zero.
 
 **10. What happens when the answer isn't in the documents?**
 FAISS still returns the four nearest chunks, because it returns nearest, not relevant. The model reads them, sees they don't answer the question, and replies with the exact not-found sentence. The app detects it and shows a warning.

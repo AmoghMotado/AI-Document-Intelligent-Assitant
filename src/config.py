@@ -15,9 +15,11 @@ load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-6-luna")
 
-# temperature=0 makes answers more deterministic and less "creative",
-# which is what we want when answering strictly from documents.
-LLM_TEMPERATURE = 0
+# None means "use the model's default temperature".
+# Newer OpenAI models reject temperature=0 and only accept the default.
+# Grounding comes from the prompt rules (answer only from the context).
+# If your model supports it, set this to 0 for more consistent answers.
+LLM_TEMPERATURE = None
 LLM_MAX_TOKENS = 1024
 
 # --- Embedding settings ---

@@ -20,8 +20,8 @@ Every setting lives here: API key, model name, chunk size, overlap, top-k and th
 
 Why centralize? To experiment, you change one number in one file.
 
-*Check yourself:* Why is `LLM_TEMPERATURE` set to 0?
-(Lower temperature means less randomness. For factual answers from documents we want consistency, not creativity.)
+*Check yourself:* Why is `LLM_TEMPERATURE` set to `None`?
+(Newer OpenAI models reject temperature 0 and only accept their default, so `None` tells LangChain not to send a temperature at all. Lower temperature means less randomness, so with a model that allows it, 0 is a good choice for factual answers.)
 
 ## 2. `src/document_loader.py`
 
